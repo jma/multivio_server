@@ -169,6 +169,14 @@ Core with Pdfs inside..</b></a>
                 start_response('200 OK', [('content-type',
                     'application/json')])
                 return ["%s" % physical]
+        
+        if re.search(r'get', path) is not None:
+            self.logger.debug("Get Metadata with opts: %s" % opts)
+            if opts.has_key('url'):
+                to_return = self.get_all(opts['url'])
+                start_response('200 OK', [('content-type',
+                    'application/json')])
+                return ["%s" % to_return]
         raise ApplicationError.InvalidArgument("Invalid Argument")
 
     def _choose_parser(self, file_name, url, mime):
@@ -262,6 +270,20 @@ Core with Pdfs inside..</b></a>
         #physic['mime'] = mime
             
         return json.dumps(physic,  sort_keys=True, indent=2)
+    
+    def get_all(self, url):
+        """Get the internal metadata of a document."""
+        (local_file, mime) = self.get_remote_file(url)
+            
+
+        #check the mime type
+        self.logger.debug("Url: %s Detected Mime: %s" % (url, mime))
+        selected_parser = self._choose_parser(local_file, url, mime)
+        to_return = selected_parser.get_all()
+        to_return['mime'] = mime
+        to_return['url'] = url
+            
+        return json.dumps(to_return,  sort_keys=True, indent=2)
 
     def get_params(self, environ):
         """ Overload the default method to allow cgi url.

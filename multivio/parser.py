@@ -78,4 +78,31 @@ class DocumentParser(object):
         """
         return None
 
+    def get_all(self):
+        meta = self.get_metadata()
+        logical = self.get_logical_structure()
+        physical = self.get_physical_structure()
+        to_return = meta
+        children = None
+        if logical:
+            def extract_struct(node):
+                to_return = []
+                for n in node:
+                    temp = {}
+                    temp['title'] = n['label']
+                    temp['url'] = n['file_position']['url']
+                    temp['index'] = n['file_position']['index']
+                    if n.has_key('childs'):
+                        temp['children'] = extract_struct(n['childs'])
+                    to_return.append(temp)
+                return to_return
+            children = extract_struct(logical)
+        else:
+            children = []
+            for node in physical:
+                children.append({'title': node['label'], 'url': node['url']})
+        to_return['children'] = children 
+        return to_return
+
+
 
