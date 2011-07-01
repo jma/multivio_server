@@ -152,12 +152,11 @@ class PdfProcessor(DocumentProcessor):
         # results for the current file
         result = {
           'max_reached': 0,
-          'context': 'text',
-          'file_position': {
-            'url':self._file_name, # will be replaced by remote URL by processor_app, if necessary
-            'results':[ # results for that file go here
-            ]
-          }
+          'context_type': 'text',
+          'query': query,
+          'url': self._file_name, # will be replaced by remote URL by processor_app, if necessary
+          'results':[ # results for that file go here
+              ]
         }
         
         # current result
@@ -230,12 +229,12 @@ class PdfProcessor(DocumentProcessor):
     
                     # store coordinates, taking angle into account
                     cur_res = {
-                      'preview': prw,
-                      'index': {
-                        'page': np,
-                        'bounding_box': self._get_coords(bbox, angle, page_size)
-                      }
+                       'left_context': prw[0],
+                       'matched': prw[1],
+                       'right_context': prw[2],
+                       'page': np
                     }
+                    cur_res.update(self._get_coords(bbox, angle, page_size))
                     
                     # append result to list
                     # boolean: current page results, may be discarded if a subquery is not found
@@ -254,7 +253,7 @@ class PdfProcessor(DocumentProcessor):
                 # last subquery was found on the page, we can add the results to the global results list now
                 if (i == (lq - 1)):
                     self.logger.debug("pdf_processor: word %s found on page %s, adding to global results"%(subquery, np))
-                    result['file_position']['results'].extend(page_results)
+                    result['results'].extend(page_results)
                 
 
         return result
@@ -316,8 +315,6 @@ class PdfProcessor(DocumentProcessor):
             data -- string: output text
         """
 
-        if (num_chars in [0, None]):
-            return ''
 
         # this allows us to get the words before and after
         # but we need to know the found word number first ...
@@ -342,11 +339,14 @@ class PdfProcessor(DocumentProcessor):
         (x1c, y1c, x2c, y2c) = (max(0, x1-context_size), y1,\
                                 min(page_size['width'], x2+context_size), y2)
         
+        matched = text_page.getText(x1, y1, x2, y2)
+        left_context = text_page.getText(max(0, x1-context_size), y1, x1, y2)
+        right_context = text_page.getText(x2, y1, min(page_size['width'], x2+context_size), y2)
         # get preview text
-        prw = text_page.getText(x1c, y1c, x2c, y2c)
+        #prw = text_page.getText(x1c, y1c, x2c, y2c)
         # note: normally, prw is in utf-8 here. If not, do prw.encode('utf-8')
 
-        return prw
+        return (left_context, matched, right_context)
 
 
     def get_indexing(self, index=None, from_=None, to_=None):

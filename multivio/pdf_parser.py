@@ -70,7 +70,7 @@ class PdfParser(DocumentParser):
         metadata['mime'] = 'application/pdf'
         metadata['nPages'] = self._doc.getNumPages()
         metadata['fileSize'] = self.get_file_size()
-        metadata['defaultNativeSize'], metadata['nativeSize'] = self._get_native_size()
+        metadata['defaultNativeSize'], metadata['nativeSizes'] = self._get_native_size()
         #info = None
         #try:
         #    info = self.getDocumentInfo()

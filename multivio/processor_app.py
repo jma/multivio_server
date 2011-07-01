@@ -228,7 +228,7 @@ If a range of pages is specified with 'from' and 'to', 'page_nr' is ignored. Els
                 results = self.search(url, query, from_, to_, max_results,
                     sort, context_size, angle)
                 # add url to 'file_position' of results
-                results['file_position']['url'] = url
+                results['url'] = url
                 start_response('200 OK', [('content-type',
                     'application/json')])
                 return [json.dumps(results, sort_keys=False, indent=2,
