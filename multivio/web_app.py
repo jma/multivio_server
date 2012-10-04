@@ -146,6 +146,7 @@ class WebApplication(object):
         self._tmp_dir = temp_dir
         self._timeout = MVOConfig.Url.timeout
         import socket
+        self.request = (None, None)
         socket.setdefaulttimeout(self._timeout)
         self._urlopener = MyFancyURLopener()
         self._urlopener.version = MVOConfig.Url.user_agent
@@ -174,6 +175,7 @@ class WebApplication(object):
 
     def __call__(self, environ, start_response):
         """Main wsgi method."""
+        self.request = (environ, start_response)
         self.cookies = environ.get('HTTP_COOKIE', None)
 
         if re.match('.*?help.*?', environ['PATH_INFO']):
@@ -188,6 +190,7 @@ class WebApplication(object):
 
         start_response('405 Method Not Allowed', [('content-type',
                         'text/html')])
+        self.request = (None, None)
         return ["%s is not allowed." % environ['REQUEST_METHOD'].upper()]
 
     def check_mime(self, mime):
@@ -197,11 +200,12 @@ class WebApplication(object):
             raise ApplicationError.UnsupportedFormat(
                 "Mime type: %s is not supported" % mime)
 
-    def get_remote_file(self, url, force=False):
+    def get_remote_file(self, url, force=False, request=None):
         """Get a remote file if needed and download it in a cache directory."""
         #file in RERO DOC nfs volume
         try:
-            (mime, local_file) = mvo_config.get_internal_file(url, force)
+            (mime, local_file) = mvo_config.get_internal_file(url, force,
+                    self.request)
             if local_file is not None and os.path.isfile(local_file):
                 self.check_mime(mime)
                 self.logger.info("Found local file: %s" % local_file)

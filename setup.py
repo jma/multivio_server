@@ -30,4 +30,7 @@ setup(
     'Intended Audience :: Science/Research',
     'License :: OSI Approved :: Internal',
     ],
+    install_requires=[
+    'PIL>=1.1.7'
+    ]
 )

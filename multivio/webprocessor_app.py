@@ -28,7 +28,11 @@ if sys.version_info < (2, 6):
 else:
     import json
 
-import wkhtmltox
+WKHTMLTOX_SUPPORT = True
+try:
+    import wkhtmltox
+except ImportError:
+    WKHTMLTOX_SUPPORT = False
 
 # local modules
 from web_app import WebApplication, ApplicationError, WebException
@@ -65,6 +69,8 @@ class WebProcessorApp(WebApplication):
         """ Callback method for new http request.
         
         """
+        if not WKHTMLTOX_SUPPORT:
+            raise WebProcessorError.UnableToRenderWebPage(str(e))
         #get parameters from the URI
         (path, opts) = self.get_params(environ)
 
